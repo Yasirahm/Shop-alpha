@@ -1,10 +1,12 @@
 import heroImage from "../assets/logo.jpg";
 import CallbackPopup from "../components/CallbackPopup";
-import FAQ from "../components/Faqpage";
+
 import WhatsappButton from "../components/WhatsappButton";
 import Customize from "./Customize";
 import Other from "./Other";
-import { TermsAndPrivacy } from "./Terms";
+import Products from "./Products";
+import Service from "./Service";
+
 
 
 const Home = () => {
@@ -12,24 +14,37 @@ const Home = () => {
     <div className="bg-white">
       {/* Hero Section */}
       <section
-  style={{ backgroundImage: `url(${heroImage})` }}
-  className="bg-cover bg-center h-[90vh] flex items-center justify-center"
+  style={{
+    backgroundImage: `url(${heroImage})`,
+    backgroundRepeat: "no-repeat",
+    backgroundPosition: "center",
+    backgroundSize: "contain",
+    backgroundColor: "yellow", // ✅ fills the rest of the area
+  }}
+  className="min-h-[90vh] flex items-center justify-center"
 >
-
-        <div className="bg-black bg-opacity-60 p-10 rounded-xl text-center max-w-2xl">
-          <h1 className="text-white text-4xl md:text-5xl font-bold mb-4">Personalize Your World with New Generation Versatile studio Store</h1>
-          <p className="text-gray-300 text-lg mb-6">Custom T-Shirts, Islamic Frames, Name Gifts & More – Made Just for You!</p>
-          <a href="/products" className="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition duration-300">
-            Shop Now
-          </a>
-        </div>
-      </section>
+  <div className="bg-black bg-opacity-60 p-10 rounded-xl text-center max-w-2xl">
+    <h1 className="text-white text-4xl md:text-5xl font-bold mb-4">
+      Personalize Your World with NewAge Versatile Studio Store
+    </h1>
+    <p className="text-gray-300 text-lg mb-6">
+      Custom T-Shirts, Islamic Frames, Name Gifts & More – Made Just for You!
+    </p>
+    <a
+      href="/products"
+      className="inline-block px-6 py-3 bg-blue-600 text-white font-semibold rounded hover:bg-blue-700 transition duration-300"
+    >
+      Shop Now
+    </a>
+  </div>
+</section>
+  <Products />
 
       {/* Why Choose Us Section */}
       <section className="py-20 px-6 md:px-20 bg-gradient-to-br from-white to-gray-100">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-4xl font-extrabold text-center text-gray-800 mb-16 leading-tight">
-            Why <span className="text-blue-600">Choose Yahi Store?</span>
+            Why <span className="text-blue-600">Choose NewAge Versatile Studio?</span>
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
@@ -123,14 +138,15 @@ const Home = () => {
             </div>
           </div>
         </div>
+      
       </section>
+      <Service/>
       <Other/>
       <Customize />
       <WhatsappButton />
       <CallbackPopup />
       {/* Footer */}
-      <FAQ />
-      <TermsAndPrivacy/>
+      
       
     </div>
   );

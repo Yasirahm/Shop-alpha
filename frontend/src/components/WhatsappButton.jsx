@@ -2,7 +2,7 @@
 import React from "react";
 
 const WhatsappButton = ({ message = "Hi, I’d like to customize..." }) => {
-  const phoneNumber = "916005441991"; // ✅ Replace with your number
+  const phoneNumber = "919858100244"; // ✅ Replace with your number
 
   const handleClick = () => {
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;

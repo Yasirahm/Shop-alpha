@@ -5,28 +5,65 @@ const session = require("express-session");
 const MongoStore = require("connect-mongo");
 const path = require("path");
 const dotenv = require("dotenv");
-const formRoutes = require("./routes/forms");
-const checkoutRoute = require("./routes/checkout"); // ✅ import checkout route
+const fs = require("fs");
 
 dotenv.config();
 
 const app = express();
 
-// ✅ Middleware
-app.use(express.json());
+// ✅ Load routes
+const formRoutes = require("./routes/formRoutes"); // ✅ exact match with filename
 
-// ✅ CORS (Allow frontend access with cookies/session)
+const checkoutRoute = require("./routes/checkout");
+const productRoutes = require("./routes/products");
+const orderRoutes = require("./routes/orderRoutes");
+const offerRoutes = require("./routes/offers");
+const cartRoutes = require("./routes/cart");
+const paymentRoute = require("./routes/payment");
+
+// ✅ CORS Configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://newageversatilestudio.netlify.app",
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173", // Your React frontend URL
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
-// ✅ Express-session middleware
+// Optional: fallback for manual CORS headers
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin);
+  }
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+  );
+  next();
+});
+
+// ✅ Middlewares
+app.use(express.json());
+
+// ✅ Session setup (MongoDB store)
 app.use(
   session({
-    secret: process.env.JWT_SECRET,
+    secret: process.env.JWT_SECRET || "defaultsecret",
     resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
@@ -35,35 +72,61 @@ app.use(
     }),
     cookie: {
       httpOnly: true,
+      secure: true, // Required in production with HTTPS
+      sameSite: "none", // Needed for Netlify-Render cross-domain cookies
       maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
     },
   })
 );
 
-// ✅ Serve uploaded image files
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// ✅ Serve static files
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
+app.use("/uploads", express.static(uploadsDir));
+
+// ✅ Logging incoming requests
+app.use((req, res, next) => {
+  console.log(`🔍 ${req.method} ${req.url}`);
+  next();
+});
 
 // ✅ API Routes
 app.use("/api/forms", formRoutes);
+app.use("/api/checkout", checkoutRoute);
+app.use("/api/products", productRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/offers", offerRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/payment", paymentRoute);
 
-app.use("/api/products", require("./routes/products"));
-app.use("/api/orders", require("./routes/orders"));
-app.use("/api/offers", require("./routes/offers"));
-app.use("/api/cart", require("./routes/cart"));
-app.use("/api/orders", require("./routes/orderRoutes"));
-app.use("/api/checkout", checkoutRoute); // ✅ route for invoice-based checkout
-
-// 🛠 Test Route
+// ✅ Root route
 app.get("/", (req, res) => {
-  res.send("✅ Yasir's Shop Backend is Running");
+  res.send("✅ Yasir's Shop Backend is Running - NewAgeVersatile");
 });
 
-// ✅ Connect to MongoDB and start server
+
+// ✅ 404 fallback
+app.use((req, res) => {
+  res.status(404).json({ error: "API route not found" });
+});
+
+
+// ✅ Connect MongoDB and Start Server
 mongoose
-  .connect(process.env.MONGO_URI)
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
   .then(() => {
     console.log("✅ MongoDB connected");
+
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
   })
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+  .catch((err) => {
+    console.error("❌ MongoDB connection error:", err.message);
+  });
